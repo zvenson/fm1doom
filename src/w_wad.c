@@ -35,6 +35,10 @@
 #include "z_zone.h"
 
 #include "w_wad.h"
+#include "fm1_inflate.h"
+/* FM-1: bit 31 of a lump's position marks it deflated (tools/mkimage.py) */
+#define LUMP_PACKED(l) (((unsigned)(l)->position & 0x80000000u) != 0)
+
 
 typedef struct
 {
@@ -352,7 +356,17 @@ void W_ReadLump(unsigned int lump, void *dest)
     l = lumpinfo+lump;
 	
     I_BeginRead ();
-	
+
+    if (LUMP_PACKED(l))                                 /* FM-1: a deflated lump of the flash image */
+    {
+        const byte *p = l->wad_file->mapped + (l->position & 0x7fffffff);
+        uint32_t clen = p[0] | p[1] << 8 | p[2] << 16 | (uint32_t)p[3] << 24;
+        if (l->wad_file->mapped == NULL || fm1_inflate(p + 4, clen, dest, l->size) != l->size)
+            I_Error("W_ReadLump: lump %i does not inflate", lump);
+        I_EndRead ();
+        return;
+    }
+
     c = W_Read(l->wad_file, l->position, dest, l->size);
 
     if (c < l->size)
@@ -396,7 +410,7 @@ void *W_CacheLumpNum(int lumpnum, int tag)
     // region.  If the lump is in an ordinary file, we may already
     // have it cached; otherwise, load it into memory.
 
-    if (lump->wad_file->mapped != NULL)
+    if (lump->wad_file->mapped != NULL && !LUMP_PACKED(lump))
     {
         // Memory mapped file, return from the mmapped region.
 
@@ -452,7 +466,7 @@ void W_ReleaseLumpNum(int lumpnum)
 
     lump = &lumpinfo[lumpnum];
 
-    if (lump->wad_file->mapped != NULL)
+    if (lump->wad_file->mapped != NULL && !LUMP_PACKED(lump))
     {
         // Memory-mapped file, so nothing needs to be done here.
     }

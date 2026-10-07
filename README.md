@@ -17,7 +17,12 @@ Doom on the M-VAVE FM-1 (JieLi AC791N, 1 MiB flash, ~430 KB RAM, 240×240 LCD). 
 
 1. [x] The engine runs the mini WAD on the host (renders, monsters fight back).
 2. [x] RAM: lumps read in place (as from flash), no wipe: the level runs in a 200 KB zone (the FM-1 has ~350 KB).
-3. [ ] Compressed lumps (zlib per lump), the WAD image in the app's flash.
+3. [~] Compressed lumps: `tools/mkimage.py` deflates each lump that shrinks (flag in bit 31 of its filepos),
+   `src/fm1_inflate.c` inflates it into the zone on first use (`tests/inflate_test.c`: every lump at three
+   levels, byte-exact). Image 280 KB. Open: with everything deflated the zone needs ~400 KB (static status bar
+   faces, level lumps inflated); next: faces loaded when drawn, map lumps kept raw, engine trimmed (f_finale,
+   wi_stuff, saveg, sha1, statdump) and its tables made const, so engine + image fit the 572 KB app area and the
+   zone the 336 KB POOL.
 4. [ ] The FM-1 platform: LCD (320×200 → 240×150), keys and knobs, timer, packaging for the web installer.
 5. [ ] On the device.
 
