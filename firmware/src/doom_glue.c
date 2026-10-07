@@ -275,8 +275,37 @@ uint8_t *fm1_zone(int *size)
     return _zone_start;
 }
 
+/* the controls, before the game: until a key or button, at most 8 s */
+static void controls_screen(void)
+{
+    static const char *const L[][2] = {          /* (8 px a character: 13 left, 16 right) */
+        {"A3 / G3", "FORWARD / BACK"}, {"F3 / B3", "TURN (KNOB 1)"}, {"F#3 / G#3", "STRAFE (OCT-/+)"},
+        {"C5", "FIRE (PLAY)"}, {"D5", "OPEN, USE (REC)"}, {"E5", "RUN"},
+        {"C#5 D#5 F#5", "WEAPON 1 2 3"}, {"ARP", "MAP"}, {"DEAD?", "D5 OR REC"},
+    };
+    uint32_t i, t0;
+    lcd_fill(0, 0, 240, 240, C_BLACK);
+    draw_text_box(0, 4, 240, &FONT_S, "FM-1 DOOM", RGB(255, 60, 40), 1);
+    for (i = 0; i < sizeof L / sizeof L[0]; i++) {
+        draw_text_box(4, 28 + i * 21, 104, &FONT_S, L[i][0], RGB(240, 200, 40), 0);
+        draw_text_box(108, 28 + i * 21, 128, &FONT_S, L[i][1], C_WHITE, 0);
+    }
+    draw_text_box(0, 224, 240, &FONT_S, "PRESS ANY KEY", RGB(130, 130, 130), 1);
+    t0 = fm1_ms;
+    while ((uint32_t)(fm1_ms - t0) < 8000u) {
+        fm1_service();
+        if ((uint32_t)(fm1_ms - t0) > 400u && (fm1_in.notes || fm1_in.buttons))
+            break;
+    }
+    while (fm1_in.notes || fm1_in.buttons)
+        fm1_service();                              /* (the key that ends it does not walk) */
+    prev_notes = prev_btns = 0;
+    lcd_fill(0, 0, 240, 240, C_BLACK);
+}
+
 static void doom_main(void)
 {
+    controls_screen();
     static char *argv[] = {"fm1doom", "-iwad", "freedm.wad", "-warp", "1", "-skill", "3", "-nosound", "-nomusic", 0};
     doomgeneric_Create(9, argv);
     for (;;)
