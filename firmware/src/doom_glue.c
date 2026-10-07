@@ -14,6 +14,11 @@ static uint16_t pal565[256];
 static uint16_t dg_line[2][240];
 static uint8_t xmap[240];
 static uint8_t ymap[150];
+/* the brightness (FX cycles it): the palette scaled, /256 */
+static const uint16_t BRIGHT[4] = {256, 210, 170, 130};
+static const char *const BRIGHT_MSG[4] = {"BRIGHTNESS 100%", "BRIGHTNESS 80%", "BRIGHTNESS 65%", "BRIGHTNESS 50%"};
+static uint8_t bright;
+static const char *own_msg;                     /* the HUD's line for a message of ours (brightness) */
 
 /* ---- the HUD in the strips above and below the picture: ammo and weapon (or a message) on top, health and
  * armour below; redrawn when a value changes */
@@ -43,9 +48,11 @@ static void hud_draw(void)
     fm1_hud(v, &msg, &gen);
     if (gen != hud_msg_gen) {
         hud_msg_gen = gen;
-        if (msg) { hud_msg_until = fm1_ms + 3000u; hud_msg_shown = 1; top = 1; }
+        if (msg) { hud_msg_until = fm1_ms + 3000u; hud_msg_shown = 1; top = 1; own_msg = 0; }
     }
-    if (hud_msg_shown && (int32_t)(fm1_ms - hud_msg_until) >= 0) { hud_msg_shown = 0; top = 1; }
+    if (hud_msg_shown && (int32_t)(fm1_ms - hud_msg_until) >= 0) { hud_msg_shown = 0; top = 1; own_msg = 0; }
+    if (own_msg)
+        msg = own_msg;
     for (i = 0; i < 5; i++)
         if (v[i] != hud_last[i]) { if (i >= 2) top = 1; else bottom = 1; if (i == 4) bottom = 1; hud_last[i] = v[i]; }
     if (top) {
@@ -85,7 +92,8 @@ void DG_DrawFrame(void)
 {
     uint32_t i, y;
     for (i = 0; i < 256u; i++) {                /* (I_SetPalette may change it any frame: damage, pickups) */
-        uint16_t v = RGB(colors[i].r, colors[i].g, colors[i].b);
+        uint32_t k = BRIGHT[bright];
+        uint16_t v = RGB(colors[i].r * k >> 8, colors[i].g * k >> 8, colors[i].b * k >> 8);
         pal565[i] = (uint16_t)((v >> 8) | (v << 8));
     }
     lcd_window(0, 45, 239, 194);
@@ -149,6 +157,13 @@ static void keys_poll(void)
         if ((b ^ prev_btns) & m)
             kq_put(BTNKEY[i].key, (b & m) != 0);
     }
+    if (b & ~prev_btns & (1u << 2)) {           /* FX: the brightness */
+        bright = (uint8_t)((bright + 1u) & 3u);
+        own_msg = BRIGHT_MSG[bright];
+        hud_msg_until = fm1_ms + 2000u;
+        hud_msg_shown = 1;
+        hud_last[2] = -999;                     /* (redraws the top line) */
+    }
     prev_notes = n;
     prev_btns = b;
     /* KNOB 1 or SELECT turns: a detent holds the turn key ~70 ms */
@@ -185,6 +200,7 @@ static uint32_t err_len;
 static void dg_show(const char *title, const char *text, uint32_t ms)
 {
     uint32_t t0;
+    fm1_audio_stop();                           /* (else the DMA loops the last half: a buzz) */
     lcd_sync();
     lcd_fill(0, 0, 240, 240, RGB(120, 0, 0));
     draw_text_box(0, 20, 240, &FONT_S, title, C_WHITE, 1);
@@ -260,6 +276,7 @@ void *_sbrk(int incr)
 
 void _exit(int code)
 {
+    fm1_audio_stop();
     dg_show("DOOM STOPPED", err_len ? err_text : "exit", 20000);
     (void)code;
     bootguard.pending = 0;
@@ -300,14 +317,14 @@ static void controls_screen(void)
     static const char *const L[][2] = {          /* (8 px a character: 13 left, 16 right) */
         {"A3 / G3", "FORWARD / BACK"}, {"F3 / B3", "TURN (KNOB 1)"}, {"F#3 / G#3", "STRAFE (OCT-/+)"},
         {"C5", "FIRE (PLAY)"}, {"D5", "OPEN, USE (REC)"}, {"E5", "RUN"},
-        {"C#5 D#5 F#5", "WEAPON 1 2 3"}, {"ARP", "MAP"}, {"DEAD?", "D5 OR REC"},
+        {"C#5 D#5 F#5", "WEAPON 1 2 3"}, {"ARP", "MAP"}, {"FX", "BRIGHTNESS"}, {"DEAD?", "D5 OR REC"},
     };
     uint32_t i, t0;
     lcd_fill(0, 0, 240, 240, C_BLACK);
     draw_text_box(0, 4, 240, &FONT_S, "FM-1 DOOM", RGB(255, 60, 40), 1);
     for (i = 0; i < sizeof L / sizeof L[0]; i++) {
-        draw_text_box(4, 28 + i * 21, 104, &FONT_S, L[i][0], RGB(240, 200, 40), 0);
-        draw_text_box(108, 28 + i * 21, 128, &FONT_S, L[i][1], C_WHITE, 0);
+        draw_text_box(4, 28 + i * 19, 104, &FONT_S, L[i][0], RGB(240, 200, 40), 0);
+        draw_text_box(108, 28 + i * 19, 128, &FONT_S, L[i][1], C_WHITE, 0);
     }
     draw_text_box(0, 224, 240, &FONT_S, "PRESS ANY KEY", RGB(130, 130, 130), 1);
     t0 = fm1_ms;
@@ -326,8 +343,8 @@ static void doom_main(void)
 {
     logo_screen();
     controls_screen();
-    static char *argv[] = {"fm1doom", "-iwad", "freedm.wad", "-warp", "1", "-skill", "3", "-nosound", "-nomusic", 0};
-    doomgeneric_Create(9, argv);
+    static char *argv[] = {"fm1doom", "-iwad", "freedm.wad", "-warp", "1", "-skill", "3", "-nomusic", 0};
+    doomgeneric_Create((int)(sizeof argv / sizeof argv[0]) - 1, argv);
     for (;;)
         doomgeneric_Tick();
 }

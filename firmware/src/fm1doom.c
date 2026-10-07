@@ -10,6 +10,7 @@
 #include "fm1_input.h"
 #include "fm1_timer.h"
 #include "fm1_lcd_hw.h"
+#include "fm1_audio.h"
 #include "bootguard.h"
 
 bootguard_t bootguard __attribute__((section(".noinit")));
@@ -122,6 +123,27 @@ void fm1_timer5_irq(void)
 }
 extern void isr_timer5(void);
 
+/* ---- the sound: ALNK0 I2S, two halves of 128 frames; fm1_sfx.c mixes the effects (Q15 -> 24 bit) */
+#define HALF_FRAMES 128u
+#define HALF_WORDS (HALF_FRAMES * 2u)
+static int32_t abuf[2u * HALF_WORDS] __attribute__((aligned(4)));
+void fm1_sfx_render(int32_t *out, unsigned n);
+
+void fm1_alnk0_irq(void)                       /* via isr_alnk0 (hal/fm1_isr.S) */
+{
+    uint8_t p = fm1_audio_pending();
+    fm1_audio_ack_aux(p);
+    if (p & FM1_AUDIO_HALF) {
+        int32_t *o = &abuf[fm1_audio_free_half() * HALF_WORDS];
+        uint32_t i;
+        fm1_sfx_render(o, HALF_FRAMES);
+        for (i = 0; i < HALF_WORDS; i++)
+            o[i] <<= 8;
+        fm1_audio_ack_half();
+    }
+}
+extern void isr_alnk0(void);
+
 /* the USB side, polled from the game loop: the installer's update request, the UBOOT request */
 static void fm1_service(void)
 {
@@ -134,6 +156,7 @@ static void fm1_service(void)
             ota_session();                      /* returns only if nothing was committed */
     }
     if (usb.uboot_req) {
+        fm1_audio_stop();
         lcd_fill(0, 0, 240, 240, C_BLACK);
         draw_text_box(0, 110, 240, &FONT_S, "UBOOT (USB)", C_WHITE, 1);
         usb_detach();
@@ -176,6 +199,7 @@ void fm1_cstart(void)
     lcd_init();
     lcd_fill(0, 0, 240, 240, C_BLACK);
     fm1_input_init();
+    fm1_audio_init(abuf, HALF_WORDS, isr_alnk0, 3);   /* (abuf is zero: .bss) */
     usb_start();
     fm1_timer5_start(isr_timer5, 4);
     fm1_guard_lock_top();

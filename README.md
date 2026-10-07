@@ -26,7 +26,9 @@ Doom on the M-VAVE FM-1 (JieLi AC791N, 1 MiB flash, ~430 KB RAM, 240×240 LCD). 
    SDK's trimmed newlib plus `firmware/src/fm1_libc.c` (printf family, a growing heap, no files); the finale,
    intermission, savegames and the network checksum stubbed (the arena restarts at its exit).
    Flash 549 of 581 KB, RAM 227 KB + zone 195 KB.
-5. [ ] On the device.
+5. [x] On the device (0.1). 0.3: Freedoom's logo at boot, then the controls.
+6. [x] Sound (0.4): the effects synthesized (`src/fm1_sfx.c`: a sweeping oscillator plus filtered noise per
+   effect, 8 voices at 44.1 kHz in the audio interrupt); no music. `host/sfx_demo.c` writes them all to a WAV.
 
 ## Controls (FM-1)
 
@@ -40,6 +42,7 @@ Doom on the M-VAVE FM-1 (JieLi AC791N, 1 MiB flash, ~430 KB RAM, 240×240 LCD). 
 | E5 | run |
 | C#5 · D#5 · F#5 | fist · pistol · shotgun |
 | ARP | the automap |
+| FX | brightness (100 · 80 · 65 · 50 %) |
 
 ## Licences
 

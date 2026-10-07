@@ -39,7 +39,7 @@ def main(sloopdx, pkg, version, out):
       <section class="card">
         <h2>Controls</h2>
         <p class="small"><b>F3 · B3</b> or <b>KNOB 1</b>: turn &nbsp; <b>A3 · G3</b>: forward · back &nbsp; <b>F#3 · G#3</b> or <b>OCT− · OCT+</b>: strafe</p>
-        <p class="small"><b>C5</b> or <b>PLAY</b>: fire &nbsp; <b>D5</b> or <b>REC</b>: open, use &nbsp; <b>E5</b>: run &nbsp; <b>C#5 · D#5 · F#5</b>: fist · pistol · shotgun &nbsp; <b>ARP</b>: map</p>
+        <p class="small"><b>C5</b> or <b>PLAY</b>: fire &nbsp; <b>D5</b> or <b>REC</b>: open, use &nbsp; <b>E5</b>: run &nbsp; <b>C#5 · D#5 · F#5</b>: fist · pistol · shotgun &nbsp; <b>ARP</b>: map &nbsp; <b>FX</b>: brightness</p>
         <h2>Back to sloopDX</h2>
         <p class="small">Open the <a href="../webapp/installer/">sloopDX installer</a> and press Install. If the FM-1 does not answer: hold OCT− while switching it on (USB rescue), then install.</p>
       </section>

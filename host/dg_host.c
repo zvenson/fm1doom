@@ -59,10 +59,10 @@ int DG_GetKey(int *pressed, unsigned char *key)
 int main(int argc, char **argv)
 {
     uint32_t i, tics = argc > 1 ? (uint32_t)atoi(argv[1]) : 350;
-    char *args[] = {"fm1doom", "-iwad", getenv("FM1_WAD") ? getenv("FM1_WAD") : "build/freedm.wad", "-warp", "1", "-skill", "3", "-nosound", "-nomusic",
+    char *args[] = {"fm1doom", "-iwad", getenv("FM1_WAD") ? getenv("FM1_WAD") : "build/freedm.wad", "-warp", "1", "-skill", "3", "-nomusic",
                     "-kb", argc > 3 ? argv[3] : "4096", NULL};
     if (argc > 2) outdir = argv[2];
-    doomgeneric_Create(11, args);
+    doomgeneric_Create((int)(sizeof args / sizeof args[0]) - 1, args);
     for (i = 0; i < tics; i++) {
         doomgeneric_Tick();
         now_ms += 1000 / 35 + (i % 7 == 0);           /* ~35 tics a second */

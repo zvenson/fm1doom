@@ -83,7 +83,11 @@ static channel_t *channels;
 // Maximum volume of a sound effect.
 // Internal default is max out of 0-15.
 
+#ifdef FM1_DEVICE
+int sfxVolume = 12;                                     /* FM-1: louder (no menu here to raise it) */
+#else
 int sfxVolume = 8;
+#endif
 
 // Maximum volume of music. 
 

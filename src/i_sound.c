@@ -71,8 +71,10 @@ static int snd_mport = 0;
 
 // Compiled-in sound modules:
 
+extern sound_module_t fm1_sound_module;   /* FM-1: synthesized effects (fm1_sfx.c) */
 static sound_module_t *sound_modules[] = 
 {
+    &fm1_sound_module,
     #ifdef FEATURE_SOUND
     &DG_sound_module,
     #endif
