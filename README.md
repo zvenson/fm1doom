@@ -18,3 +18,13 @@ Doom on the M-VAVE FM-1 (JieLi AC791N, 1 MiB flash, ~430 KB RAM, 240×240 LCD). 
 3. [ ] Compressed lumps (zlib per lump), the WAD image in the app's flash.
 4. [ ] The FM-1 platform: LCD (320×200 → 240×150), keys and knobs, timer, packaging for the web installer.
 5. [ ] On the device.
+
+## Licences
+
+- The engine (`src/`, from doomgeneric / Chocolate Doom / id Software's Doom source): GNU GPL 2.0 or later,
+  `COPYING`. The FM-1 firmware build adds the GPL-3.0 hardware layer of Felucca / sloopDX, so the firmware as a
+  whole is GPL-3.0.
+- The game data built by `tools/mkwad.py` comes from FreeDM (the Freedoom project): BSD-3-Clause,
+  `FREEDOOM-COPYING.txt`. No id Software data is used or needed.
+- Doom is a trademark of ZeniMax Media; this project is not affiliated with id Software, ZeniMax, Bethesda or
+  M-VAVE.
