@@ -123,7 +123,7 @@ void fm1_timer5_irq(void)
 }
 extern void isr_timer5(void);
 
-/* ---- the sound: ALNK0 I2S, two halves of 128 frames; fm1_sfx.c mixes the effects (Q15 -> 24 bit) */
+/* ---- the sound: ALNK0 I2S, two halves of 128 frames; fm1_sfx.c mixes the effects (Q15, -12 dB, -> 24 bit) */
 #define HALF_FRAMES 128u
 #define HALF_WORDS (HALF_FRAMES * 2u)
 static int32_t abuf[2u * HALF_WORDS] __attribute__((aligned(4)));
@@ -138,7 +138,7 @@ void fm1_alnk0_irq(void)                       /* via isr_alnk0 (hal/fm1_isr.S) 
         uint32_t i;
         fm1_sfx_render(o, HALF_FRAMES);
         for (i = 0; i < HALF_WORDS; i++)
-            o[i] <<= 8;
+            o[i] <<= 6;                         /* (-12 dB: << 8 was too loud) */
         fm1_audio_ack_half();
     }
 }
