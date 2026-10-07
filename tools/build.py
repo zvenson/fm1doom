@@ -97,6 +97,30 @@ def generate():
                                      "const unsigned char fm1_wad_image[] __attribute__((aligned(4))) = {\n"
                                      + rows + "\n};\nconst unsigned int fm1_wad_len = %d;\n" % len(img))
     print(f"wad: {len(img)} B")
+    # the boot logo: Freedoom's M_DOOM (BSD-3-Clause), palette indices + the colours it uses as RGB565
+    sys.path.insert(0, str(SRC / "tools"))
+    from mkwad import read_wad
+    lumps = dict(read_wad(str(SRC / "freedoom-0.13.0" / "freedoom1.wad")))
+    patch, pal = lumps["M_DOOM"], lumps["PLAYPAL"]
+    w, h = struct.unpack_from("<hh", patch)
+    ofs = struct.unpack_from("<%di" % w, patch, 8)
+    px = bytearray(w * h)                             # 0 = black (palette index 0 is black)
+    for x in range(w):
+        o = ofs[x]
+        while patch[o] != 0xFF:
+            top, n = patch[o], patch[o + 1]
+            for i in range(n):
+                px[(top + i) * w + x] = patch[o + 3 + i]
+            o += n + 4
+    rgb = []
+    for c in range(256):
+        r, g, b = pal[3 * c:3 * c + 3]
+        v = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3)
+        rgb.append(((v >> 8) | (v << 8)) & 0xFFFF)   # (byte-swapped, as the LCD takes it)
+    rows = ",\n".join(",".join(str(b) for b in px[i:i + 40]) for i in range(0, len(px), 40))
+    (GEN / "fm1_logo.h").write_text(f"/* generated: Freedoom's M_DOOM (BSD-3-Clause) */\n#define LOGO_W {w}\n#define LOGO_H {h}\n"
+                                    "static const uint8_t LOGO_PX[] = {\n" + rows + "\n};\n"
+                                    "static const uint16_t LOGO_PAL[256] = {" + ",".join(map(str, rgb)) + "};\n")
 
 
 # ---- update loader
@@ -166,7 +190,7 @@ NEWLIB = Path(os.environ.get("AC79_SDK", Path.home() / "fw-AC79_AIoT_SDK")) / "i
 
 
 def build_app():
-    flags = [*CFLAGS, "-Ifirmware/hal", "-Ifirmware/src", "-Ifirmware/gen", "-Isrc", f'-DFELUCCA_ID="{PRODUCT}"']
+    flags = [*CFLAGS, "-Ifirmware/hal", "-Ifirmware/src", "-Ifirmware/gen", "-Ibuild/gen", "-Isrc", f'-DFELUCCA_ID="{PRODUCT}"']
     eflags = ["-Os", "-ffunction-sections", "-fdata-sections", "-w", f"-I{NEWLIB / 'include'}", "-Isrc",
               "-DFM1_DEVICE", "-DFM1_SMALL", "-DCMAP256", "-DDOOMGENERIC_RESX=320", "-DDOOMGENERIC_RESY=200"]
     (OUT / "eobj").mkdir(parents=True, exist_ok=True)

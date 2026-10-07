@@ -275,6 +275,25 @@ uint8_t *fm1_zone(int *size)
     return _zone_start;
 }
 
+/* the boot logo: Freedoom's, 1.5 x (238 x 55), centred, ~2.5 s */
+#include "fm1_logo.h"
+static void logo_screen(void)
+{
+    uint32_t x, y, t0, ow = LOGO_W * 3u / 2u, oh = LOGO_H * 3u / 2u;
+    lcd_fill(0, 0, 240, 240, C_BLACK);
+    lcd_window((240u - ow) / 2u, (240u - oh) / 2u, (240u - ow) / 2u + ow - 1u, (240u - oh) / 2u + oh - 1u);
+    for (y = 0; y < oh; y++) {
+        const uint8_t *src = LOGO_PX + (y * 2u / 3u) * LOGO_W;
+        uint16_t *d = dg_line[y & 1u];
+        for (x = 0; x < ow; x++)
+            d[x] = LOGO_PAL[src[x * 2u / 3u]];
+        lcd_data(d, ow * 2u);
+    }
+    t0 = fm1_ms;
+    while ((uint32_t)(fm1_ms - t0) < 2500u)
+        fm1_service();
+}
+
 /* the controls, before the game: until a key or button, at most 8 s */
 static void controls_screen(void)
 {
@@ -305,6 +324,7 @@ static void controls_screen(void)
 
 static void doom_main(void)
 {
+    logo_screen();
     controls_screen();
     static char *argv[] = {"fm1doom", "-iwad", "freedm.wad", "-warp", "1", "-skill", "3", "-nosound", "-nomusic", 0};
     doomgeneric_Create(9, argv);
