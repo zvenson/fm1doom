@@ -196,7 +196,7 @@ void D_Display (void)
     }
 
     // save the current screen if about to wipe
-    if (gamestate != wipegamestate)
+    if (0 && gamestate != wipegamestate)                 /* FM-1: no wipe (two more 64 KB screens) */
 		{
 		wipe = true;
 		wipe_StartScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);

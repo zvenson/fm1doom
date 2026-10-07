@@ -1,3 +1,4 @@
+#include <stdlib.h>
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 2005-2014 Simon Howard
@@ -49,6 +50,15 @@ static wad_file_t *W_StdC_OpenFile(char *path)
     result->wad.mapped = NULL;
     result->wad.length = M_FileLength(fstream);
     result->fstream = fstream;
+    /* FM-1: the WAD lies in flash and is read in place. The host does the same with a copy outside
+     * the zone, so the zone measures what the device needs */
+    result->wad.mapped = malloc(result->wad.length);
+    fseek(fstream, 0, SEEK_SET);
+    if (fread(result->wad.mapped, 1, result->wad.length, fstream) != result->wad.length)
+    {
+        free(result->wad.mapped);
+        result->wad.mapped = NULL;
+    }
 
     return &result->wad;
 }

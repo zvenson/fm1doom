@@ -23,30 +23,41 @@ def write_wad(path, lumps):
 def s8(b): return b.rstrip(b"\0").decode().upper()
 
 # the sprites kept: weapons (fist, pistol, shotgun), hits, the imp and the zombieman, pickups
-SPRITES = ["ARM1", "PUNG", "PISG", "PISF", "SHTG", "SHTF", "PUFF", "BLUD", "BAL1", "POSS", "TROO", "CLIP", "SHEL",
-           "STIM", "MEDI", "SHOT", "TFOG", "IFOG", "BON1", "BON2", "AMMO", "SBOX"]
+SPRITES = ["ARM1", "PUNG", "PISG", "PISF", "SHTG", "SHTF", "PUFF", "BLUD", "BAL1", "TROO", "CLIP", "SHEL",
+           "STIM", "MEDI", "SHOT", "TFOG", "BON1", "BON2", "AMMO", "SBOX"]
+# rare or big textures painted with a common one (the flash holds ~260 KB of data)
+REMAP = {"BROWNPIP": "BROWNHUG", "LOGO": "STONE4", "SW1BRN1": "SW1BROWN", "STARTAN2": "METAL", "WOOD6": "WOODMET1",
+         "ZIMMER7": "ZIMMER2", "BROWN144": "BROWNHUG", "BIGBRIK1": "STONE4"}
 UI_PRE = ("STB", "STT", "STG", "STY", "STK", "STC", "STF", "STAR", "STP", "STD")
 KEEP = ("PLAYPAL", "COLORMAP", "SKY1")
 
 # a deathmatch arena made a single-player level: big weapons and power-ups become what the mini WAD has,
-# the deathmatch starts become monsters (imp, zombieman in turn); every thing on every skill
+# the deathmatch starts become imps; every thing on every skill
 SWAP = {82: 2001, 2002: 2048, 2003: 2008, 2004: 2049, 2005: 2011, 2006: 2012}
-MONSTERS = (3001, 3004)
+MONSTERS = (3001,)
 
 def things(raw):
     out, n = b"", 0
     for k in range(0, len(raw), 10):
         x, y, a, t, f = struct.unpack_from("<hhhhh", raw, k)
         if t == 11:
-            t = MONSTERS[n % 2]; n += 1
+            t = MONSTERS[n % len(MONSTERS)]; n += 1
         t = SWAP.get(t, t)
         out += struct.pack("<hhhhh", x, y, a, t, 7)
+    return out
+
+def sidedefs(raw):
+    out = b""
+    for k in range(0, len(raw), 30):
+        x, y, up, lo, mid, sec = struct.unpack_from("<hh8s8s8sh", raw, k)
+        up, lo, mid = (REMAP.get(s8(t), s8(t)).encode().ljust(8, b"\0") for t in (up, lo, mid))
+        out += struct.pack("<hh8s8s8sh", x, y, up, lo, mid, sec)
     return out
 
 def main(src, mapname, out):
     L = read_wad(src); names = [n for n, _ in L]; data = dict(L)
     i = names.index(mapname)
-    maplumps = [(k, things(v) if k == "THINGS" else v) for k, v in L[i + 1:i + 11]]
+    maplumps = [(k, things(v) if k == "THINGS" else sidedefs(v) if k == "SIDEDEFS" else v) for k, v in L[i + 1:i + 11]]
     m = dict(maplumps)
     tex, flats = set(), {"F_SKY1"}
     for k in range(0, len(m["SIDEDEFS"]), 30):
