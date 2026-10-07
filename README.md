@@ -23,6 +23,11 @@ Doom on the M-VAVE FM-1 (JieLi AC791N, 1 MiB flash, ~430 KB RAM, 240×240 LCD). 
    faces, level lumps inflated); next: faces loaded when drawn, map lumps kept raw, engine trimmed (f_finale,
    wi_stuff, saveg, sha1, statdump) and its tables made const, so engine + image fit the 572 KB app area and the
    zone the 336 KB POOL.
+   Measured since: with the 64 KB screen outside the zone (it was the fragmented zone's largest block) the level
+   runs in a 300 KB zone. On pi32v2 the engine is 222 KB of code and constants; f_finale, wi_stuff, i_scale,
+   p_saveg, sha1, m_config, statdump can go (~38 KB), and `states` / `mobjinfo` (40 KB) move from RAM to flash.
+   Budget: flash 224 KB engine + ~25 KB platform + 280 KB image = ~530 of 572 KB; RAM region 96 KB = engine data
+   (~25 KB after `ticdata` shrinks) + the screen; POOL 336 KB = the zone.
 4. [ ] The FM-1 platform: LCD (320×200 → 240×150), keys and knobs, timer, packaging for the web installer.
 5. [ ] On the device.
 

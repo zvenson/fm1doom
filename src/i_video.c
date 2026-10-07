@@ -31,6 +31,9 @@ rcsid[] = "$Id: i_x.c,v 1.6 1997/02/03 22:45:10 b1 Exp $";
 #include "d_event.h"
 #include "d_main.h"
 #include "i_video.h"
+#ifndef FM1_POOL
+#define FM1_POOL                                    /* (the device puts it in its POOL section) */
+#endif
 #include "i_system.h"
 #include "z_zone.h"
 
@@ -287,7 +290,10 @@ void I_InitGraphics (void)
 
 
     /* Allocate screen to draw to */
-	I_VideoBuffer = (byte*)Z_Malloc (SCREENWIDTH * SCREENHEIGHT, PU_STATIC, NULL);  // For DOOM to draw on
+	{   /* FM-1: the screen outside the zone (a 64 KB block would not be found in a fragmented zone) */
+	    static byte screen[SCREENWIDTH * SCREENHEIGHT] FM1_POOL;
+	    I_VideoBuffer = screen;
+	}
 
 	screenvisible = true;
 

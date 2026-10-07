@@ -427,6 +427,8 @@ void *W_CacheLumpNum(int lumpnum, int tag)
     {
         // Not yet loaded, so load it now
 
+        if (getenv("FM1_TRACE"))
+            fprintf(stderr, "cache %.8s %d tag %d\n", lump->name, lump->size, tag);
         lump->cache = Z_Malloc(W_LumpLength(lumpnum), tag, &lump->cache);
 	W_ReadLump (lumpnum, lump->cache);
         result = lump->cache;
