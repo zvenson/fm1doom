@@ -3,6 +3,9 @@
 Doom on the M-VAVE FM-1 (JieLi AC791N, 1 MiB flash, ~430 KB RAM, 240×240 LCD). A side project of
 [sloopDX](https://github.com/zvenson/dxsloop).
 
+**Watch it:** [Can it run Doom? (YouTube Short)](https://youtube.com/shorts/dCOmvZW9SWU) ·
+**Try it:** [web installer](https://dx7.designburgapps.com/doom/) (Chrome / Edge, USB)
+
 - **Engine:** [doomgeneric](https://github.com/ozkl/doomgeneric) (Chocolate Doom, GPL-2.0-or-later) in `src/`,
   changed for a small WAD (missing switch textures and music are skipped) and a zone in KiB (`-kb`).
 - **Data:** one arena of [FreeDM](https://freedoom.github.io/) (Freedoom project, BSD-3-Clause), MAP12 made a
