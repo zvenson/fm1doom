@@ -201,7 +201,9 @@ static void InitConnectData(net_connect_data_t *connect_data)
 
     // Read checksums of our WAD directory and dehacked information
 
+#ifndef FM1_DEVICE                                      /* FM-1: no network, no SHA-1 (4.5 KB) */
     W_Checksum(connect_data->wad_sha1sum);
+#endif
 
 #if ORIGCODE
     DEH_Checksum(connect_data->deh_sha1sum);

@@ -50,6 +50,9 @@ patch_t*		sttminus;
 
 void STlib_init(void)
 {
+#ifdef FM1_SMALL
+    return;                                             /* FM-1: no status bar graphics */
+#endif
     sttminus = (patch_t *) W_CacheLumpName(DEH_String("STTMINUS"), PU_STATIC);
 }
 

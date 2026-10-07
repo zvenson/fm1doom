@@ -1060,6 +1060,9 @@ void ST_Drawer (boolean fullscreen, boolean refresh)
 
     // Do red-/gold-shifts from damage/items
     ST_doPaletteStuff();
+#ifdef FM1_SMALL
+    return;                                             /* FM-1: no status bar, its own HUD (doom_glue.c) */
+#endif
 
     // If just after ST_Start(), refresh all
     if (st_firsttime) ST_doRefresh();
@@ -1172,7 +1175,9 @@ void ST_loadGraphics(void)
 void ST_loadData(void)
 {
     lu_palette = W_GetNumForName (DEH_String("PLAYPAL"));
+#ifndef FM1_SMALL                                       /* FM-1: no status bar graphics (~60 KB of zone) */
     ST_loadGraphics();
+#endif
 }
 
 static void ST_unloadCallback(char *lumpname, patch_t **variable)
@@ -1411,6 +1416,8 @@ void ST_Stop (void)
 void ST_Init (void)
 {
     ST_loadData();
+#ifndef FM1_SMALL
     st_backing_screen = (byte *) Z_Malloc(ST_WIDTH * ST_HEIGHT, PU_STATIC, 0);
+#endif
 }
 

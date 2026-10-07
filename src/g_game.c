@@ -1519,7 +1519,11 @@ void G_WorldDone (void)
 void G_DoWorldDone (void) 
 {        
     gamestate = GS_LEVEL; 
+#ifdef FM1_DEVICE
+    gamemap = 1;                                        /* the one arena, again */
+#else
     gamemap = wminfo.next+1; 
+#endif
     G_DoLoadLevel (); 
     gameaction = ga_nothing; 
     viewactive = true; 
@@ -1547,6 +1551,10 @@ void G_LoadGame (char* name)
 
 void G_DoLoadGame (void) 
 {
+#ifdef FM1_DEVICE
+    gameaction = ga_nothing;                            /* FM-1: no savegames (no files) */
+    return;
+#endif
     int savedleveltime;
 	 
     gameaction = ga_nothing; 
@@ -1609,6 +1617,10 @@ G_SaveGame
 
 void G_DoSaveGame (void) 
 { 
+#ifdef FM1_DEVICE
+    gameaction = ga_nothing;                            /* FM-1: no savegames (no files) */
+    return;
+#endif
     char *savegame_file;
     char *temp_savegame_file;
     char *recovery_savegame_file;

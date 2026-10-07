@@ -16,20 +16,30 @@ Doom on the M-VAVE FM-1 (JieLi AC791N, 1 MiB flash, ~430 KB RAM, 240×240 LCD). 
 ## Status
 
 1. [x] The engine runs the mini WAD on the host (renders, monsters fight back).
-2. [x] RAM: lumps read in place (as from flash), no wipe: the level runs in a 200 KB zone (the FM-1 has ~350 KB).
-3. [~] Compressed lumps: `tools/mkimage.py` deflates each lump that shrinks (flag in bit 31 of its filepos),
-   `src/fm1_inflate.c` inflates it into the zone on first use (`tests/inflate_test.c`: every lump at three
-   levels, byte-exact). Image 280 KB. Open: with everything deflated the zone needs ~400 KB (static status bar
-   faces, level lumps inflated); next: faces loaded when drawn, map lumps kept raw, engine trimmed (f_finale,
-   wi_stuff, saveg, sha1, statdump) and its tables made const, so engine + image fit the 572 KB app area and the
-   zone the 336 KB POOL.
-   Measured since: with the 64 KB screen outside the zone (it was the fragmented zone's largest block) the level
-   runs in a 300 KB zone. On pi32v2 the engine is 222 KB of code and constants; f_finale, wi_stuff, i_scale,
-   p_saveg, sha1, m_config, statdump can go (~38 KB), and `states` / `mobjinfo` (40 KB) move from RAM to flash.
-   Budget: flash 224 KB engine + ~25 KB platform + 280 KB image = ~530 of 572 KB; RAM region 96 KB = engine data
-   (~25 KB after `ticdata` shrinks) + the screen; POOL 336 KB = the zone.
-4. [ ] The FM-1 platform: LCD (320×200 → 240×150), keys and knobs, timer, packaging for the web installer.
+2. [x] RAM: lumps read in place, no wipe, the screen outside the zone; renderer limits for one small arena
+   (`FM1_SMALL`: 48 visplanes, openings ×28, 128 drawsegs, `viewangletox` as short); no Doom status bar or HUD
+   font: health, armour, ammo, weapon and messages are the FM-1's own HUD in the strips above and below the
+   picture; the sky is four copies of a 64-column slice. The host runs the level for 100 s in a 150 KB zone.
+3. [x] The WAD image (raw deflate per lump, PLAYPAL / COLORMAP raw): 239 KB in the app's flash.
+4. [x] The firmware: `./build.sh` -> `build/fm1doom.fwsc` (identity FM-1_980): sloopDX's boot guard, USB-MIDI,
+   M-UPGRADE updater and USB rescue (OCT- at power-on), so the web installer can always put sloopDX back; the
+   SDK's trimmed newlib plus `firmware/src/fm1_libc.c` (printf family, a growing heap, no files); the finale,
+   intermission, savegames and the network checksum stubbed (the arena restarts at its exit).
+   Flash 549 of 581 KB, RAM 227 KB + zone 195 KB.
 5. [ ] On the device.
+
+## Controls (FM-1)
+
+| | |
+|---|---|
+| F3 · B3 | turn left · right (or KNOB 1 / SELECT) |
+| A3 · G3 | forward · back |
+| F#3 · G#3, OCT− · OCT+ | strafe left · right |
+| C5 or PLAY | fire |
+| D5 or REC | open / use (and: again, after dying) |
+| E5 | run |
+| C#5 · D#5 · F#5 | fist · pistol · shotgun |
+| ARP | the automap |
 
 ## Licences
 

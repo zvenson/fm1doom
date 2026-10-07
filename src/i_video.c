@@ -326,6 +326,10 @@ void I_UpdateNoBlit (void)
 
 void I_FinishUpdate (void)
 {
+#ifdef FM1_DEVICE
+    DG_DrawFrame();                                     /* the FM-1 scales and converts I_VideoBuffer itself */
+    return;
+#endif
     int y;
     int x_offset, y_offset, x_offset_end;
     unsigned char *line_in, *line_out;

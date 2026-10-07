@@ -60,6 +60,12 @@ wad_file_t *W_OpenFile(char *path)
     // directly into memory.
     //
 
+#ifdef FM1_DEVICE
+    {
+        extern wad_file_class_t fm1_wad_file;          /* the image in flash */
+        return fm1_wad_file.OpenFile(path);
+    }
+#endif
     if (!M_CheckParm("-mmap"))
     {
         return stdc_wad_file.OpenFile(path);

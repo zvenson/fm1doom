@@ -283,6 +283,9 @@ char *mapnames_commercial[] =
     THUSTR_32
 };
 
+char *fm1_message;                                       /* FM-1: the last message, for its HUD */
+int fm1_message_gen;
+
 void HU_Init(void)
 {
 
@@ -290,6 +293,9 @@ void HU_Init(void)
     int		j;
     char	buffer[9];
 
+#ifdef FM1_SMALL
+    return;                                             /* FM-1: messages go to its own HUD, no font */
+#endif
     // load the heads-up font
     j = HU_FONTSTART;
     for (i=0;i<HU_FONTSIZE;i++)
@@ -319,6 +325,10 @@ void HU_Start(void)
     message_dontfuckwithme = false;
     message_nottobefuckedwith = false;
     chat_on = false;
+#ifdef FM1_SMALL
+    headsupactive = true;                               /* FM-1: no widgets (no font); messages: fm1_message */
+    return;
+#endif
 
     // create the message widget
     HUlib_initSText(&w_message,
@@ -382,6 +392,9 @@ void HU_Start(void)
 
 void HU_Drawer(void)
 {
+#ifdef FM1_SMALL
+    return;
+#endif
 
     HUlib_drawSText(&w_message);
     HUlib_drawIText(&w_chat);
@@ -392,6 +405,9 @@ void HU_Drawer(void)
 
 void HU_Erase(void)
 {
+#ifdef FM1_SMALL
+    return;
+#endif
 
     HUlib_eraseSText(&w_message);
     HUlib_eraseIText(&w_chat);
@@ -419,7 +435,12 @@ void HU_Ticker(void)
 	if ((plr->message && !message_nottobefuckedwith)
 	    || (plr->message && message_dontfuckwithme))
 	{
+#ifdef FM1_SMALL
+	    fm1_message = plr->message;                     /* FM-1: shown by its HUD (doom_glue.c) */
+	    fm1_message_gen++;
+#else
 	    HUlib_addMessageToSText(&w_message, 0, plr->message);
+#endif
 	    plr->message = 0;
 	    message_on = true;
 	    message_counter = HU_MSGTIMEOUT;
@@ -511,6 +532,9 @@ char HU_dequeueChatChar(void)
 
 boolean HU_Responder(event_t *ev)
 {
+#ifdef FM1_SMALL
+    return false;                                       /* FM-1: no chat */
+#endif
 
     static char		lastmessage[HU_MAXLINELENGTH+1];
     char*		macromessage;

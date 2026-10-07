@@ -1,3 +1,4 @@
+#ifndef FM1_DEVICE   /* FM-1: stubs in fm1_stubs.c */
  /*
 
  Copyright(C) 2005-2014 Simon Howard
@@ -390,3 +391,5 @@ void StatDump(void)
 #endif
 }
 
+
+#endif

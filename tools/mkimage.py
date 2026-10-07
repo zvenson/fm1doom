@@ -7,6 +7,9 @@ import struct, sys, zlib
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 from mkwad import read_wad
 
+RAW = {"PLAYPAL", "COLORMAP"}               # cached for good: read in place, not inflated into the zone
+
+
 def deflate(b):
     c = zlib.compressobj(9, zlib.DEFLATED, -15, 9)
     return c.compress(b) + c.flush()
@@ -16,7 +19,7 @@ def main(src, out):
     body, dirs, pos, packed = b"", b"", 12, 0
     for name, b in L:
         c = deflate(b) if b else b""
-        if b and len(c) + 4 < len(b) * 0.9:
+        if b and len(c) + 4 < len(b) * 0.9 and name not in RAW:
             blob = struct.pack("<I", len(c)) + c
             fp = pos | 0x80000000
             packed += 1

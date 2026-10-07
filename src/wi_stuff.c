@@ -1,3 +1,4 @@
+#ifndef FM1_DEVICE   /* FM-1: stubs in fm1_stubs.c */
 //
 // Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 2005-2014 Simon Howard
@@ -1827,3 +1828,5 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
     else
 	WI_initStats();
 }
+
+#endif

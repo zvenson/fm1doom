@@ -28,7 +28,7 @@ SPRITES = ["ARM1", "PUNG", "PISG", "PISF", "SHTG", "SHTF", "PUFF", "BLUD", "BAL1
 # rare or big textures painted with a common one (the flash holds ~260 KB of data)
 REMAP = {"BROWNPIP": "BROWNHUG", "LOGO": "STONE4", "SW1BRN1": "SW1BROWN", "STARTAN2": "METAL", "WOOD6": "WOODMET1",
          "ZIMMER7": "ZIMMER2", "BROWN144": "BROWNHUG", "BIGBRIK1": "STONE4"}
-UI_PRE = ("STB", "STT", "STG", "STY", "STK", "STC", "STF", "STAR", "STP", "STD")
+UI_PRE = ("AMMNUM",)                              # the automap's marks; the status bar is the FM-1's own HUD
 KEEP = ("PLAYPAL", "COLORMAP", "SKY1")
 
 # a deathmatch arena made a single-player level: big weapons and power-ups become what the mini WAD has,
@@ -45,6 +45,24 @@ def things(raw):
         t = SWAP.get(t, t)
         out += struct.pack("<hhhhh", x, y, a, t, 7)
     return out
+
+def patch_cols(data, n):
+    """a Doom patch cut to its first n columns (header, column offsets, the columns' posts)"""
+    w, h, lo, to = struct.unpack_from("<hhhh", data)
+    ofs = struct.unpack_from("<%di" % w, data, 8)
+    cols = []
+    for i in range(n):
+        o = ofs[i]; start = o
+        while data[o] != 0xFF:
+            o += data[o + 1] + 4
+        cols.append(data[start:o + 1])
+    out, pos = b"", 8 + 4 * n
+    for c in cols:
+        out += struct.pack("<i", pos); pos += len(c)
+    return struct.pack("<hhhh", n, h, lo, to) + out + b"".join(cols)
+
+# the sky: four copies of a 64-column slice of its patch (35 KB -> 9 KB of zone when it is drawn)
+SKY_SLICE = 64
 
 def sidedefs(raw):
     out = b""
@@ -68,13 +86,23 @@ def main(src, mapname, out):
     pn = data["PNAMES"]
     pnames = [s8(pn[4 + 8 * j:12 + 8 * j]) for j in range(struct.unpack_from("<i", pn)[0])]
     t1 = data["TEXTURE1"]
-    texdefs, used_p = [], []
+    texdefs, used_p, sky_patch = [], [], None
     for j in range(struct.unpack_from("<i", t1)[0]):
         o = struct.unpack_from("<i", t1, 4 + 4 * j)[0]
         if s8(t1[o:o + 8]) not in tex:
             continue
         np_ = struct.unpack_from("<h", t1, o + 20)[0]
         head, pats = t1[o:o + 22], []
+        if s8(t1[o:o + 8]) == "SKY1":
+            p = pnames[struct.unpack_from("<hhhhh", t1, o + 22)[2]]
+            if p not in used_p:
+                used_p.append(p)
+            w = struct.unpack_from("<h", t1, o + 12)[0]
+            k = w // SKY_SLICE
+            texdefs.append(head[:20] + struct.pack("<h", k) + b"".join(
+                struct.pack("<hhhhh", SKY_SLICE * q, 0, used_p.index(p), 1, 0) for q in range(k)))
+            sky_patch = p
+            continue
         for q in range(np_):
             ox, oy, pi, a, b = struct.unpack_from("<hhhhh", t1, o + 22 + 10 * q)
             p = pnames[pi]
@@ -94,7 +122,8 @@ def main(src, mapname, out):
     ui = [(nm, data[nm]) for nm in names if nm.startswith(UI_PRE)]
     lumps = [(k, data[k]) for k in KEEP] + [("TEXTURE1", new_t1), ("PNAMES", new_pn)]
     lumps += [("MAP01", b"")] + maplumps
-    lumps += [("P_START", b"")] + [(p, data[p]) for p in used_p] + [("P_END", b"")]
+    lumps += [("P_START", b"")] + [(p, patch_cols(data[p], SKY_SLICE) if p == sky_patch else data[p]) for p in used_p]
+    lumps += [("P_END", b"")]
     lumps += [("F_START", b"")] + flat_l + [("F_END", b"")]
     lumps += [("S_START", b"")] + spr_l + [("S_END", b"")]
     lumps += ui

@@ -48,7 +48,11 @@
 #define SIL_TOP			2
 #define SIL_BOTH		3
 
+#ifdef FM1_SMALL
+#define MAXDRAWSEGS		128
+#else
 #define MAXDRAWSEGS		256
+#endif
 
 
 

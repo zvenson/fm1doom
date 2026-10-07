@@ -359,6 +359,10 @@ void W_ReadLump(unsigned int lump, void *dest)
 
     if (LUMP_PACKED(l))                                 /* FM-1: a deflated lump of the flash image */
     {
+#ifdef FM1_DEVICE
+        extern void fm1_idle(void);                    /* the watchdog, while a level loads */
+        fm1_idle();
+#endif
         const byte *p = l->wad_file->mapped + (l->position & 0x7fffffff);
         uint32_t clen = p[0] | p[1] << 8 | p[2] << 16 | (uint32_t)p[3] << 24;
         if (l->wad_file->mapped == NULL || fm1_inflate(p + 4, clen, dest, l->size) != l->size)

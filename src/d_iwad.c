@@ -722,7 +722,11 @@ char *D_FindIWAD(int mask, GameMission_t *mission)
 
         iwadfile = myargv[iwadparm + 1];
 
+#ifdef FM1_DEVICE
+        result = M_StringDuplicate(iwadfile);          /* (in flash: no file system to search) */
+#else
         result = D_FindWADByName(iwadfile);
+#endif
 
         if (result == NULL)
         {

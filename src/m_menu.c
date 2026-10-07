@@ -75,7 +75,11 @@ int			showMessages = 1;
 
 // Blocky mode, has default, 0 = high, 1 = normal
 int			detailLevel = 0;
+#ifdef FM1_SMALL
+int			screenblocks = 11;               /* FM-1: the view fills the screen, no status bar */
+#else
 int			screenblocks = 10;
+#endif
 
 // temp for screenblocks (0-9)
 int			screenSize;

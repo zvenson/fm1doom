@@ -42,14 +42,22 @@ planefunction_t		ceilingfunc;
 //
 
 // Here comes the obnoxious "visplane".
+#ifdef FM1_SMALL                                    /* FM-1: one small arena, 432 KB of RAM */
+#define MAXVISPLANES	48
+#else
 #define MAXVISPLANES	128
+#endif
 visplane_t		visplanes[MAXVISPLANES];
 visplane_t*		lastvisplane;
 visplane_t*		floorplane;
 visplane_t*		ceilingplane;
 
 // ?
+#ifdef FM1_SMALL
+#define MAXOPENINGS	SCREENWIDTH*28
+#else
 #define MAXOPENINGS	SCREENWIDTH*64
+#endif
 short			openings[MAXOPENINGS];
 short*			lastopening;
 

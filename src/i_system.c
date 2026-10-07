@@ -142,6 +142,12 @@ byte *I_ZoneBase (int *size)
     // Specify the heap size, in MiB (default 16).
     //
 
+#ifdef FM1_DEVICE
+    {
+        extern byte *fm1_zone(int *size);              /* the RAM after .bss / the screen (fm1doom.ld) */
+        return fm1_zone(size);
+    }
+#endif
     p = M_CheckParmWithArgs("-kb", 1);                  /* FM-1: the zone in KiB (the device has no MiBs) */
     if (p > 0)
     {

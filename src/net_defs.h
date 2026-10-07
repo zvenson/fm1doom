@@ -42,7 +42,11 @@
 
 // Networking and tick handling related.
 
+#ifdef FM1_DEVICE
+#define BACKUPTICS 16                                    /* one player, no network: 20 KB less RAM */
+#else
 #define BACKUPTICS 128
+#endif
 
 typedef struct _net_module_s net_module_t;
 typedef struct _net_packet_s net_packet_t;

@@ -18,7 +18,9 @@ void doomgeneric_Create(int argc, char **argv)
 
 	M_FindResponseFile();
 
+#ifndef FM1_DEVICE                                     /* (the FM-1 reads I_VideoBuffer itself) */
 	DG_ScreenBuffer = malloc(DOOMGENERIC_RESX * DOOMGENERIC_RESY * 4);
+#endif
 
 	DG_Init();
 
