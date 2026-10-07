@@ -1,0 +1,7 @@
+build/
+obj/
+doomgeneric/
+freedoom-*/
+freedm-*/
+*.zip
+.savegame/
