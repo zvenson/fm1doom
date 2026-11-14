@@ -56,3 +56,5 @@ Doom on the M-VAVE FM-1 (JieLi AC791N, 1 MiB flash, ~430 KB RAM, 240×240 LCD). 
   `FREEDOOM-COPYING.txt`. No id Software data is used or needed.
 - Doom is a trademark of ZeniMax Media; this project is not affiliated with id Software, ZeniMax, Bethesda or
   M-VAVE.
+
+You can also try FM-1 Doom in the browser, no flashing needed, in the free community [FM-1 Emulator](https://fm1-emulator.atst.tools/).
